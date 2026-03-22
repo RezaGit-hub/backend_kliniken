@@ -1,8 +1,18 @@
-from app.api import patient_api
+from fastapi import FastAPI
+from app.database import get_connection
 
+app = FastAPI()
+
+@app.get("/")
+def root():
+    conn = get_connection()
+    conn.close()
+    return {"message": "DB kliniken Connection ist da...."}
+
+"""
 def main():
-    print("Klinikum Backend startet...")
+    print("Kliniken Backend startet...")
     # Hier später FastAPI / Flask App starten
 
 if __name__ == "__main__":
-    main()
+    main()"""
