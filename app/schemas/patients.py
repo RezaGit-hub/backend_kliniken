@@ -26,7 +26,7 @@ class PatientResponse(BaseModel):
 
 
 #to update a patient
-class PatientUpdtae(BaseModel):
+class PatientUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     birth_date: Optional[date] = None
