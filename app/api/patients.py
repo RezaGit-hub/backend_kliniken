@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_connection
-from datetime import date
+
 from app.schemas.patients import PatientCreate, PatientResponse, PatientUpdate
-from typing import List
+
 
 router = APIRouter()
 
