@@ -1,14 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_connection
-
+from app.services.auth_dependencies import get_current_user
 from app.schemas.patients import PatientCreate, PatientResponse, PatientUpdate
+from typing import List
 
 
 router = APIRouter()
 
 #create a new patient
 @router.post("/patients", response_model=PatientResponse)
-def create_patient(patient: PatientCreate):
+def create_patient(patient: PatientCreate, current_user = Depends(get_current_user)):
+
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=401, detail="not authorization")
+    
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -34,7 +39,7 @@ def create_patient(patient: PatientCreate):
     
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=201, detail="Database error")
+        raise HTTPException(status_code=500, detail="Database error")
     
     finally:
         cursor.close()
@@ -42,8 +47,15 @@ def create_patient(patient: PatientCreate):
 
 
 #read all patients
-@router.get("/patients", response_model=PatientResponse)
-def get_patients():
+@router.get("/patients", response_model=List[PatientResponse])
+def get_patients(current_user = Depends(get_current_user),
+                 page : int= 1,
+                 limit : int= 10):
+    offset = (page - 1) * limit
+
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="not authorization")
+    
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -51,7 +63,9 @@ def get_patients():
         """SELECT id, first_name, last_name, birth_date, gender, phone_number
         FROM patients
         ORDER BY id
-        """
+        LIMIT %s OFFSET %s
+        """,
+        (limit, offset)
     )
 
     rows = cursor.fetchall()
@@ -166,5 +180,5 @@ def delete_patient(patient_id: int):
     conn.close()
 
     if not deleted:
-        raise HTTPException(status_code=204, detail="patient nicht gefunden")
-    return{"message: ": "patient wurde gelöscht"}
+        raise HTTPException(status_code=404, detail="patient nicht gefunden")
+    return{"message": "patient wurde gelöscht"}
