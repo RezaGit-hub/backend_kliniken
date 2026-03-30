@@ -3,6 +3,7 @@ from app.database import get_connection
 from app.services.auth_dependencies import get_current_user
 from app.schemas.patients import PatientCreate, PatientResponse, PatientUpdate
 from typing import List
+from app.services.patients_service import create_patients as create_patient_service
 
 
 router = APIRouter()
@@ -14,36 +15,19 @@ def create_patient(patient: PatientCreate, current_user = Depends(get_current_us
     if current_user["role"] != "admin":
         raise HTTPException(status_code=401, detail="not authorization")
     
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
-            """INSERT INTO patients(first_name, last_name, birth_date, gender, phone_number)
-             VALUES(%s,%s,%s,%s,%s)
-              RETURNING id, first_name, last_name, birth_date, gender, phone_number""",
-              (patient.first_name, patient.last_name, patient.birth_date, patient.gender, patient.phone_number)
-        )
-
-        new_patient = cursor.fetchone()
-        conn.commit()
-
-        return{
-            "id": new_patient[0],
-            "first_name": new_patient[1],
-            "last_name": new_patient[2],
-            "birth_date": new_patient[3],
-            "gender": new_patient[4],
-            "phone_number": new_patient[5]
-        }
     
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail="Database error")
+    new_patient = create_patient_service(patient)
     
-    finally:
-        cursor.close()
-        conn.close()
+    return{
+        "id": new_patient[0],
+        "first_name": new_patient[1],
+        "last_name": new_patient[2],
+        "birth_date": new_patient[3],
+        "gender": new_patient[4],
+        "phone_number": new_patient[5]
+    }
+    
+
 
 
 #read all patients

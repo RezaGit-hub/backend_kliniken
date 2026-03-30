@@ -1,39 +1,27 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_connection
 from app.schemas.doctors import DoctorCreate, DoctorResponse, DoctorUpdate
+from app.services.doctors_service import create_doctor as create_doctor_service
+
 
 router = APIRouter()
 #to create new doctor
 @router.post("/doctors", response_model=DoctorResponse)
 def create_doctor(doctor: DoctorCreate):
-    conn = get_connection()
-    cursor = conn.cursor()
 
-    try:
-        cursor.execute(
-            """INSERT INTO doctors(first_name, last_name, specialization, phone_number)
-            VALUES(%s,%s,%s,%s)
-            RETURNING id, first_name, last_name, specialization, phone_number""",
-            (doctor.first_name, doctor.last_name, doctor.specialization, doctor.phone_number)
-        )
+    
 
-        new_doctor = cursor.fetchone()
-        conn.commit()
+   new_doctor = create_doctor_service(doctor)
+   
+   return{
+       "id": new_doctor[0],
+       "first_name": new_doctor[1],
+       "last_name": new_doctor[2],
+       "specialization": new_doctor[3],
+       "phone_number": new_doctor[4]
+   }
 
-        return{
-            "id": new_doctor[0],
-            "first_name": new_doctor[1],
-            "last_name": new_doctor[2],
-            "specialization": new_doctor[3],
-            "phone_number": new_doctor[4]
-        }
-
-    except Exception as e:
-            conn.rollback()
-            raise HTTPException(status_code=201, detail= "database error")
-    finally:
-         cursor.close()
-         conn.close()
+    
 
 
 #to get doctors
