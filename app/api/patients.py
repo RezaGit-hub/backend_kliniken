@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_connection
-from app.services.auth_dependencies import get_current_user
+from app.services.auth_dependencies import get_current_user, require_role
 from app.schemas.patients import PatientCreate, PatientResponse, PatientUpdate
 from typing import List
 from app.services.patients_service import create_patients as create_patient_service
@@ -10,10 +10,10 @@ router = APIRouter()
 
 #create a new patient
 @router.post("/patients", response_model=PatientResponse)
-def create_patient(patient: PatientCreate, current_user = Depends(get_current_user)):
+def create_patient(patient: PatientCreate, current_user = Depends(require_role(["admin", "doctor"]))):
 
-    if current_user["role"] != "admin":
-        raise HTTPException(status_code=401, detail="not authorization")
+    if current_user:
+        raise True
     
     
     new_patient = create_patient_service(patient)

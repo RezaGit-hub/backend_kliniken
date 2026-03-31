@@ -2,23 +2,16 @@ from fastapi import APIRouter , HTTPException
 from app.database import get_connection
 from app.schemas.appointments import AppointmentCreate,AppointmentResponse,AppointmentUpdate
 from typing import List
+from app.services.appointments_service import create_appointments as create_appointment_service
+from app.services.appointments_service import get_appointments_details 
+
+
 router = APIRouter()
 
 @router.post("/appointments", response_model=AppointmentResponse)
 def create_appointment(appointment: AppointmentCreate):
-    conn = get_connection()
-    cursor= conn.cursor()
-
-    try:
-        cursor.execute(
-            """INSERT INTO appointments(patient_id, doctor_id, appointment_date, reason
-             VALUES(%s,%s,%s,%s)
-              RETURNING id, patient_id, doctor_id, appointment_date, reason""",
-              (appointment.patient_id, appointment.doctor_id, appointment.appointment_date, appointment.reason )
-        )
-
-        new_appointment = cursor.fetchone()
-        conn.commit()
+    
+        new_appointment = create_appointment_service(appointment)
 
         return{
             "id": new_appointment[0],
@@ -28,30 +21,15 @@ def create_appointment(appointment: AppointmentCreate):
             "reason": new_appointment[4]
         }
     
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail="database error")
     
-    finally:
-        cursor.close()
-        conn.close()
 
 #to read all appointments
 @router.get("/appointments", response_model=List[AppointmentResponse])
 def get_appointments():
-    conn = get_connection()
-    cursor = conn.cursor()
+    
 
-    cursor.execute(
-        """SELECT id, patient_id, doctor_id, appointment_date, reason
-        FROM appointments
-        ORDER BY id"""
-    )
-
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
+    rows = get_appointments_details()
+    
     appointments= []
     for row in rows:
         appointments.append({
