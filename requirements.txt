@@ -3,7 +3,7 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 python-jose
-bcrypt
+bcrypt==3.2.2
 passlib[bcrypt]
 pydantic[email]
 alembic
