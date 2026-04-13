@@ -24,7 +24,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials= Depends(security
 
 def require_role(role: list[str]):
     def role_checker(current_user = Depends(get_current_user)):
-        if current_user["role"] != role:
+        if current_user["role"] not in role:
             raise HTTPException(status_code=403, detail="not authorization")
         return current_user
     return role_checker
