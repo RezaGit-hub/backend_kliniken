@@ -2,12 +2,16 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.database import get_connection
 from app.schemas.doctors import DoctorCreate, DoctorResponse, DoctorUpdate
 from app.services.doctors_service import create_doctor as create_doctor_service
+from app.services.auth_dependencies import require_role
 
 
 router = APIRouter()
 #to create new doctor
 @router.post("/doctors", response_model=DoctorResponse)
-def create_doctor(doctor: DoctorCreate):
+def create_doctor(doctor: DoctorCreate, current_user= Depends(require_role(["admin", "doctor"])) ):
+   
+   if current_user:
+        raise True
 
     
 
