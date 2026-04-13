@@ -29,9 +29,10 @@ def register(user: UserCreate):
             "role": new_user[2]
         }
 
-    except Exception:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail="database error")
+    except Exception as e:
+    print("ERROR:", e)
+    conn.rollback()
+    raise HTTPException(status_code=500, detail=str(e))
 
     finally:
         cursor.close()
@@ -65,9 +66,10 @@ def login(user: UserLogin):
 
         return {"access_token": token}
     
-    except Exception:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail="database error")
+    except Exception as e:
+    print("ERROR:", e)
+    conn.rollback()
+    raise HTTPException(status_code=500, detail=str(e))
     finally:
         cursor.close()
         conn.close()
