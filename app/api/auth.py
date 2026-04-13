@@ -32,7 +32,8 @@ def register(user: UserCreate):
     except Exception as e:
         
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"ERROR: {e}")
+        print("error:" , e)
+        raise HTTPException(status_code=500, detail=str(e))
 
     finally:
         cursor.close()
