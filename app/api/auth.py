@@ -11,8 +11,10 @@ def register(user: UserCreate):
     cursor = conn.cursor()
 
     try:
-        password_hash = hash_password(user.password)
+        print("PASSWORD:", user.password)
+        print("LENGTH:", len(user.password))
 
+        password_hash = hash_password(user.password)
         cursor.execute(
             """INSERT INTO users(email, password_hash, role) 
             VALUES(%s,%s,%s)
